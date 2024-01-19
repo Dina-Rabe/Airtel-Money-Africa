@@ -8,7 +8,7 @@
 * Author URI: https://www.linkedin.com/in/dina-rabenarimanitra-91aa0261/
 **/
 
-require_once 'ama_bin/AM_Payment_content.php';
+require_once 'ama_bin/Models.php';
 
 function ama_create_plugin_pages() {
     // Check if plugin pages already created
@@ -18,13 +18,12 @@ function ama_create_plugin_pages() {
     // Create the Payement page if empty
     if (empty($ama_payment_page)){
         $page_content = new AMA_Payment_Page_Content(
-            get_bloginfo('name'), 
-            get_bloginfo('description')
+            'Airtel Money Payment', 
+            file_get_contents(plugin_dir_path(__FILE__) . 'ama_html/ama_payment.html')
         );
-        $content_html = $page_content->get_content_html();
         $ama_payment_page = array(
-            'post_title' => 'Airtel Money Payment',
-            'post_content' => $content_html,
+            'post_title' => $page_content->getTitle(),
+            'post_content' => $page_content->getContent(),
             'post_status' => 'publish',
             'post_type' => 'page'
         );
