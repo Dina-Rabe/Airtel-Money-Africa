@@ -7,19 +7,19 @@
 * Author: Dina Rabenarimanitra
 * Author URI: https://www.linkedin.com/in/dina-rabenarimanitra-91aa0261/
 **/
-
-require_once 'ama_bin/Models.php';
-
+//require_once plugin_dir_path(__FILE__) .'ama_bin/Models.php';
+//require_once plugin_dir_path(__FILE__) .'ama_content/ama_payment.php';
+/*
 function ama_create_plugin_pages() {
     // Check if plugin pages already created
     $ama_payment_page = get_page_by_title('Airtel Money Payment');
     $ama_check_transaction_page = get_page_by_title('Airtel Money Check Transaction');
-
+    $ama_payment_page_content = plugin_dir_path(__FILE__) .'ama_content/ama_payment.php';
     // Create the Payement page if empty
     if (empty($ama_payment_page)){
         $page_content = new AMA_Payment_Page_Content(
             'Airtel Money Payment', 
-            file_get_contents(plugin_dir_path(__FILE__) . 'ama_html/ama_payment.html')
+            file_get_contents($ama_payment_page_content)
         );
         $ama_payment_page = array(
             'post_title' => $page_content->getTitle(),
@@ -56,6 +56,103 @@ function ama_delete_plugin_pages(){
         wp_delete_post($ama_check_transaction_page->ID, true);
     }
 }
+*/
+
+//Create a short code
+
+
+// function register_custom_route_get_currency(){
+//     register_rest_route( 
+//         'ama/v1', 
+//         '/currency', 
+//         array(
+//             'methods' => 'GET',
+//             'callback' => 'fetch_currency_used'
+//     ) );
+
+// }
+
+// function fetch_currency_used(){
+//     global $wpdb;
+//     $table_name = $wpdb->prefix .'options';
+//     $results = $wpdb->get_results('SELECT option_value from ' . $table_name .' where option_name = "ama_currency"');
+//     return rest_ensure_response( $results );
+// }
+
+// add_action( 'ama_rest_api_get_currency', 'register_custom_route_get_currency');
+
+
+function register_ama_currency_route() {
+    register_rest_route( 'ama/v1', '/currency', array(
+        'methods'  => 'GET',
+        'callback' => 'ama_currency_callback',
+    ) );
+}
+
+function ama_currency_callback( $request ) {
+    // Your code to handle the API request and provide a response
+    // Example: return an array of currency data
+    $currency_data = array(
+        'USD' => 1.23,
+        'EUR' => 0.92,
+        'GBP' => 0.81,
+    );
+
+    return $currency_data;
+}
+
+add_action( 'rest_api_init', 'register_ama_currency_route' );
+
+function set_amount($atts, $content = null) {
+    $content = wp_kses_post($content);
+
+    wp_enqueue_script('ama_transaction_amount', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
+
+    return '<span id="transaction_amount">' . $content . '</span>';
+}
+
+function set_product_code($atts, $content = null) {
+    $content = wp_kses_post($content);
+
+    wp_enqueue_script('ama_product_code', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
+
+    return '<span id="product_code">' . $content . '</span>';
+}
+
+function set_form($atts, $content = null) {
+    $content = wp_kses_post($content);
+    $payment_confirmation = file_get_contents(plugin_dir_url( __FILE__ ) . 'ama_content/payment_confirmation.html');
+
+    wp_enqueue_script('ama_form', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
+    wp_enqueue_style( 'ama_style', plugin_dir_url( __FILE__ ) . 'ama_content/style.css' );
+
+    $rest_server = rest_get_server();
+    $rest_routes = $rest_server->get_routes();
+
+    $api_path = 'ama/v1/currency/';
+    $api_check = 'Misy';
+
+    if(isset($rest_routes[$api_path])){
+        $api_check = 'Misy';
+    }else{
+        $api_check = 'Tsisy pory!';
+    }
+
+    return '<p>'
+            . $api_check .
+            '</p>
+            <form id="ama_form">
+                <label for="msisdn" id="ama_label">MSISDN:</label>
+                <input type="tel" id="ama_msisdn" name="msisdn" placeholder="Phone number" reauired />
+                <button type="button" id="ama_submit" url="" onclick="displayPaymentInformation()">Airtel Money</button>
+            </form>'
+            . $payment_confirmation 
+            ;
+}
+
+add_shortcode( 'ama_amount', 'set_amount' );
+add_shortcode( 'ama_product_code', 'set_product_code' );
+add_shortcode( 'ama_form', 'set_form' );
 
 // Add the admin menu page
 add_action( 'admin_menu', 'ama_add_admin_page' );
@@ -238,6 +335,3 @@ function ama_render_email_field() {
     <input type="email" name="ama_email" value="<?php echo esc_attr( $email ); ?>" />
     <?php
 }
-
-register_activation_hook(__FILE__, 'ama_create_plugin_pages');
-register_deactivation_hook(__FILE__, 'ama_delete_plugin_pages');
