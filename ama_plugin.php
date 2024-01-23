@@ -7,80 +7,7 @@
 * Author: Dina Rabenarimanitra
 * Author URI: https://www.linkedin.com/in/dina-rabenarimanitra-91aa0261/
 **/
-//require_once plugin_dir_path(__FILE__) .'ama_bin/Models.php';
-//require_once plugin_dir_path(__FILE__) .'ama_content/ama_payment.php';
-/*
-function ama_create_plugin_pages() {
-    // Check if plugin pages already created
-    $ama_payment_page = get_page_by_title('Airtel Money Payment');
-    $ama_check_transaction_page = get_page_by_title('Airtel Money Check Transaction');
-    $ama_payment_page_content = plugin_dir_path(__FILE__) .'ama_content/ama_payment.php';
-    // Create the Payement page if empty
-    if (empty($ama_payment_page)){
-        $page_content = new AMA_Payment_Page_Content(
-            'Airtel Money Payment', 
-            file_get_contents($ama_payment_page_content)
-        );
-        $ama_payment_page = array(
-            'post_title' => $page_content->getTitle(),
-            'post_content' => $page_content->getContent(),
-            'post_status' => 'publish',
-            'post_type' => 'page'
-        );
-        wp_insert_post($ama_payment_page);
-    
-    }
-    
-    // Create the check transaction page if empty
-    if (empty($ama_check_transaction_page)){
-        $ama_check_transaction_page = array(
-            'post_title' => 'Airtel Money Check Transaction',
-            'post_content' => 'Content of Page 2',
-            'post_status' => 'publish',
-            'post_type' => 'page'
-        );
-        wp_insert_post($ama_check_transaction_page);
-    }
-    
-}
-
-function ama_delete_plugin_pages(){
-    $ama_payment_page = get_page_by_title('Airtel Money Payment');
-    $ama_check_transaction_page = get_page_by_title('Airtel Money Check Transaction');
-
-    if($ama_payment_page){
-        wp_delete_post($ama_payment_page->ID, true);
-    }
-
-    if($ama_check_transaction_page){
-        wp_delete_post($ama_check_transaction_page->ID, true);
-    }
-}
-*/
-
-//Create a short code
-
-
-// function register_custom_route_get_currency(){
-//     register_rest_route( 
-//         'ama/v1', 
-//         '/currency', 
-//         array(
-//             'methods' => 'GET',
-//             'callback' => 'fetch_currency_used'
-//     ) );
-
-// }
-
-// function fetch_currency_used(){
-//     global $wpdb;
-//     $table_name = $wpdb->prefix .'options';
-//     $results = $wpdb->get_results('SELECT option_value from ' . $table_name .' where option_name = "ama_currency"');
-//     return rest_ensure_response( $results );
-// }
-
-// add_action( 'ama_rest_api_get_currency', 'register_custom_route_get_currency');
-
+require_once plugin_dir_path(__FILE__) .'ama_content/Models.php';
 
 function register_ama_currency_route() {
     register_rest_route( 'ama/v1', '/currency', array(
@@ -92,15 +19,96 @@ function register_ama_currency_route() {
 function ama_currency_callback( $request ) {
     // Your code to handle the API request and provide a response
     // Example: return an array of currency data
+    $mainOption = new AMA_Options();
     $currency_data = array(
-        'USD' => 1.23,
-        'EUR' => 0.92,
-        'GBP' => 0.81,
+        'Currency' => $mainOption->currency_configured,
     );
 
     return $currency_data;
 }
 
+function register_ama_fetch_token(){
+    register_rest_route( 
+        'ama/v1', 
+        '/token', 
+        array(
+            'methods' => 'GET',
+            'callback' => 'ama_fetch_token_callback',
+        ));
+}
+
+function ama_fetch_token_callback(){
+    $ama_token = new AMA_Options();
+    return $ama_token->get_ama_token();
+}
+
+function register_ama_fetch_kyc_info(){
+    register_rest_route(
+        'ama/v1',
+        '/kyc',
+        array(
+            'methods' => 'POST',
+            'callback' => 'ama_fetch_kyc_info_callback'
+        ));
+}
+
+function ama_fetch_kyc_info_callback($request){
+    $msisdn = $request->get_params('msisdn');
+    $kyc_resp = new AMA_Kyc($msisdn);
+
+    return json_encode($kyc_resp);
+
+}
+
+function register_ama_do_payment(){
+    register_rest_route(
+        'ama/v1',
+        'payment',
+        array(
+            'methods' => 'POST',
+            'callback' => 'ama_do_payment'        
+        )
+    );
+}
+
+function ama_do_payment($request){
+    $payment = new AMA_Payment($request);
+    $isTrue = $payment->do_payment();
+    if($isTrue){
+        return json_encode($payment);
+    }else{
+        return $payment->message;
+    }
+    
+}
+
+function register_ama_check_transaction_status(){
+    register_rest_route(
+        'ama/v1',
+        '/transaction',
+        array(
+            'methods' => 'POST',
+            'callback' => 'ama_check_transaction_status_callback'
+        ));
+}
+
+function ama_check_transaction_status_callback($request){
+    $payment = new AMA_Payment($request);
+    $isTrue = $payment->check_transaction_status();
+    if($isTrue){
+        return json_encode($payment);
+    }else{
+        return $payment->message;
+    }
+
+}
+
+//This is commented to avoid token to be fetched directly through the REST API
+add_action('rest_api_init', 'register_ama_fetch_token');
+
+add_action('rest_api_init', 'register_ama_check_transaction_status');
+add_action('rest_api_init', 'register_ama_do_payment');
+add_action('rest_api_init', 'register_ama_fetch_kyc_info');
 add_action( 'rest_api_init', 'register_ama_currency_route' );
 
 function set_amount($atts, $content = null) {
@@ -126,22 +134,7 @@ function set_form($atts, $content = null) {
     wp_enqueue_script('ama_form', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
     wp_enqueue_style( 'ama_style', plugin_dir_url( __FILE__ ) . 'ama_content/style.css' );
 
-    $rest_server = rest_get_server();
-    $rest_routes = $rest_server->get_routes();
-
-    $api_path = 'ama/v1/currency/';
-    $api_check = 'Misy';
-
-    if(isset($rest_routes[$api_path])){
-        $api_check = 'Misy';
-    }else{
-        $api_check = 'Tsisy pory!';
-    }
-
-    return '<p>'
-            . $api_check .
-            '</p>
-            <form id="ama_form">
+    return  '<form id="ama_form">
                 <label for="msisdn" id="ama_label">MSISDN:</label>
                 <input type="tel" id="ama_msisdn" name="msisdn" placeholder="Phone number" reauired />
                 <button type="button" id="ama_submit" url="" onclick="displayPaymentInformation()">Airtel Money</button>
@@ -256,12 +249,16 @@ function ama_render_general_section() {
 
 // Render the switch mode field
 function ama_render_switch_mode_field() {
-    $switch_mode = get_option( 'ama_switch_mode', 'test' );
+    $switch_mode = get_option( 'ama_switch_mode', 'https://openapiuat.airtel.africa/' );
     ?>
-    <select name="ama_switch_mode">
-        <option value="https://openapiuat.airtel.africa/" <?php selected( $switch_mode, 'test' ); ?>>Test Mode</option>
-        <option value="https://openapi.airtel.africa/" <?php selected( $switch_mode, 'production' ); ?>>Production Mode</option>
-    </select>
+    <label>
+        <input type="radio" name="ama_switch_mode" value="https://openapiuat.airtel.africa/" <?php checked( $switch_mode, 'https://openapiuat.airtel.africa/' ); ?>>
+        Test Mode
+    </label>
+    <label>
+        <input type="radio" name="ama_switch_mode" value="https://openapi.airtel.africa/" <?php checked( $switch_mode, 'https://openapi.airtel.africa/' ); ?>>
+        Production Mode
+    </label>
     <?php
 }
 
@@ -335,3 +332,39 @@ function ama_render_email_field() {
     <input type="email" name="ama_email" value="<?php echo esc_attr( $email ); ?>" />
     <?php
 }
+
+function create_ama_payment_table() {
+    global $wpdb;
+
+    $table_name = $wpdb->prefix . 'ama_payments';
+
+    $charset_collate = $wpdb->get_charset_collate();
+
+    $sql = "CREATE TABLE $table_name (
+        id INT NOT NULL AUTO_INCREMENT,
+        msisdn VARCHAR(255) NOT NULL,
+        amount DECIMAL(10, 2) NOT NULL,
+        reference VARCHAR(255) NOT NULL,
+        internal_id VARCHAR(255) NOT NULL,
+        am_id VARCHAR(255) DEFAULT NULL,
+        message VARCHAR(255) DEFAULT NULL,
+        status VARCHAR(255) DEFAULT NULL,
+        response_code VARCHAR(255) DEFAULT NULL,
+        code VARCHAR(255) DEFAULT NULL,
+        success BOOLEAN DEFAULT NULL,
+        transaction_date DATETIME NOT NULL,
+        transaction_type VARCHAR(255) DEFAULT NULL,
+        base_url VARCHAR(255) DEFAULT NULL,
+        PRIMARY KEY (id),
+        INDEX idx_msisdn (msisdn),
+        INDEX idx_internal_id (internal_id),
+        INDEX idx_am_id (am_id),
+        INDEX idx_status (status),
+        INDEX idx_transaction_date (transaction_date),
+        INDEX idx_amount (amount)
+    ) $charset_collate;";
+
+    require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+    dbDelta( $sql );
+}
+register_activation_hook( __FILE__, 'create_ama_payment_table' );
