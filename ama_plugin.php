@@ -347,7 +347,7 @@ function create_ama_payment_table() {
 
     $charset_collate = $wpdb->get_charset_collate();
 
-    $sql = "CREATE TABLE $table_name (
+    $sql = "CREATE TABLE IF NOT EXISTS $table_name (
         id INT NOT NULL AUTO_INCREMENT,
         msisdn VARCHAR(255) NOT NULL,
         amount DECIMAL(10, 2) NOT NULL,
@@ -374,4 +374,131 @@ function create_ama_payment_table() {
     require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
     dbDelta( $sql );
 }
+function create_ama_success_transaction_view() {
+    global $wpdb;
+    
+    $table_name = $wpdb->prefix . 'ama_success_transaction_view';
+    // Define the SQL query for creating the view
+    $query = "
+        CREATE VIEW IF NOT EXISTS $table_name AS
+        SELECT DISTINCT
+            msisdn,
+            amount,
+            reference,
+            internal_id,
+            am_id,
+            status,
+            response_code,
+            base_url
+        FROM
+            {$wpdb->prefix}ama_payments
+        WHERE
+            response_code = 'DP00800001001'
+            AND status = 'TS'
+    ";
+    
+    // Execute the SQL query to create the view
+    $wpdb->query( $query );
+}
+
+function create_ama_failed_transaction_view() {
+    global $wpdb;
+    
+    $table_name = $wpdb->prefix . 'ama_failed_transaction_view';
+    // Define the SQL query for creating the view
+    $query = "
+        CREATE VIEW IF NOT EXISTS $table_name AS
+        SELECT DISTINCT
+            msisdn,
+            amount,
+            reference,
+            internal_id,
+            am_id,
+            status,
+            response_code,
+            base_url
+        FROM
+            {$wpdb->prefix}ama_payments
+        WHERE status = 'TF'
+    ";
+    
+    // Execute the SQL query to create the view
+    $wpdb->query( $query );
+}
+
+
+function create_ama_in_progress_transaction_today() {
+    global $wpdb;
+
+    // Table name
+    $tableName = $wpdb->prefix . 'ama_payments'; // Replace 'allowin_ama_payments' with your actual table name
+
+    // View name
+    $viewName = $wpdb->prefix . 'ama_in_progress_transaction_today';
+
+    // Construct the SQL query for creating the view
+    $query = "
+        CREATE VIEW IF NOT EXISTS $viewName AS
+        SELECT DISTINCT
+            msisdn,
+            amount,
+            reference,
+            internal_id,
+            am_id,
+            status,
+            response_code,
+            base_url
+        FROM
+            $tableName
+        WHERE
+            response_code = 'DP00800001006'
+            AND status = 'TIP'
+            AND transaction_date >= NOW() - INTERVAL 1 DAY
+            AND internal_id NOT IN (SELECT DISTINCT internal_id FROM {$wpdb->prefix}ama_payments where status = 'TF' OR status = 'TS')";
+
+    // Execute the SQL query to create the view
+    $wpdb->query( $query );
+}
+
+function create_ama_in_progress_transaction_before_today() {
+    global $wpdb;
+
+    // Table name
+    $tableName = $wpdb->prefix . 'ama_payments'; // Replace 'allowin_ama_payments' with your actual table name
+
+    // View name
+    $viewName = $wpdb->prefix . 'ama_in_progress_transaction_before_today';
+
+    // Construct the SQL query for creating the view
+    $query = "
+        CREATE VIEW IF NOT EXISTS $viewName AS
+        SELECT DISTINCT
+            msisdn,
+            amount,
+            reference,
+            internal_id,
+            am_id,
+            status,
+            response_code,
+            base_url
+        FROM
+            $tableName
+        WHERE
+            response_code = 'DP00800001006'
+            AND status = 'TIP'
+            AND transaction_date < NOW() - INTERVAL 1 DAY
+            AND internal_id NOT IN (SELECT DISTINCT internal_id FROM {$wpdb->prefix}ama_payments where status = 'TF' OR status = 'TS')";
+
+    // Execute the SQL query to create the view
+    $wpdb->query( $query );
+}
+
+register_activation_hook( __FILE__, 'create_ama_failed_transaction_view' );
+
+register_activation_hook( __FILE__, 'create_ama_in_progress_transaction_before_today' );
+
+register_activation_hook( __FILE__, 'create_ama_in_progress_transaction_today' );
+
+register_activation_hook( __FILE__, 'create_ama_success_transaction_view' );
+
 register_activation_hook( __FILE__, 'create_ama_payment_table' );

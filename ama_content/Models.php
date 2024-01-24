@@ -146,13 +146,13 @@ class AMA_Payment{
             $this->internal_id = $params['internal_id'];
         }
         
-        $this->transaction_type = 'init';
+        $this->transaction_type = 'init_command';
         $this->transaction_date = date('Y-m-d H:i:s');
         $this->store_ama_payment_instance();
     }
 
     public function do_payment(){
-        $this->transaction_type = 'payment';
+        $this->transaction_type = 'init_payment';
         $main_option = new AMA_Options();
         $token = $main_option->get_ama_token();
         $token_str = $token->access_token;
@@ -222,7 +222,7 @@ class AMA_Payment{
     }
 
     public function check_transaction_status() {
-        $this->transaction_type = 'transaction_status';
+        $this->transaction_type = 'check_status';
         $main_option = new AMA_Options();
         $token = $main_option->get_ama_token();
         $token_str = $token->access_token;
