@@ -37,7 +37,7 @@ function isANumber(msisdn_param){
   }else{
     return false;
   }
-  
+
 }
 
 function ama_getCurrency(){
@@ -74,7 +74,7 @@ function ama_getKyc(msisdn_param, language_param){
           document.getElementById("ama_last_name_fr").textContent = result_json["lastName"] + ' ' + result_json["firstName"];
           document.getElementById("ama_last_name_info_en").textContent = result_json["lastName"] + ' ' + result_json["firstName"];
           document.getElementById("ama_last_name_info_fr").textContent = result_json["lastName"] + ' ' + result_json["firstName"];
-          
+
         }else{
           displayError(language_param);
         }
@@ -114,7 +114,7 @@ function ama_doPayment(msisdn_param, amount_param, reference_param) {
   .catch(error => {
       console.error('Error:',error);
   });
-  
+
 }
 
 function fetchTransactionStatus(internalId) {
@@ -137,7 +137,6 @@ function fetchTransactionStatus(internalId) {
     document.getElementById("ama_amount_fr").textContent = temp_data.amount;
     document.getElementById("ama_reference_fr").textContent = temp_data.reference;
     document.getElementById("ama_internal_id_fr").textContent = temp_data.internal_id;
-    document.getElementById("ama_id_fr").textContent = temp_data.am_id;
     document.getElementById("ama_message_fr").textContent = temp_data.message;
     document.getElementById("ama_status_fr").textContent = temp_data.status;
     document.getElementById("ama_response_code_fr").textContent = temp_data.response_code;
@@ -146,15 +145,23 @@ function fetchTransactionStatus(internalId) {
     document.getElementById("ama_amount_en").textContent = temp_data.amount;
     document.getElementById("ama_reference_en").textContent = temp_data.reference;
     document.getElementById("ama_internal_id_en").textContent = temp_data.internal_id;
-    document.getElementById("ama_id_en").textContent = temp_data.am_id;
     document.getElementById("ama_message_en").textContent = temp_data.message;
     document.getElementById("ama_status_en").textContent = temp_data.status;
     document.getElementById("ama_response_code_en").textContent = temp_data.response_code;
     document.getElementById("ama_base_url_en").textContent = temp_data.base_url;
+    if (typeof temp_data.am_id !== 'undefined' && temp_data.am_id !== null){
+      document.getElementById("ama_id_fr").textContent = temp_data.am_id;
+      document.getElementById("ama_id_en").textContent = temp_data.am_id;
+    }else{
+      document.getElementById("ama_id_fr").textContent = "NA";
+      document.getElementById("ama_id_en").textContent = "NA";
+    }
+
     hideLoadingOverlay(document.getElementById('loadingOverlay'));
     closeInfoWindow();
   })
   .catch(error => {
+    console.error('Error:', error);
     hideLoadingOverlay(document.getElementById('loadingOverlay'));
     closeInfoWindow();
   });
@@ -169,7 +176,7 @@ function displayPaymentInformation(){
   var msisdnInputElement = document.getElementById("ama_msisdn");
   var msisdnInput = msisdnInputElement.value;
 
-  
+
 
   document.getElementById("amount_fr").textContent = amount;
   document.getElementById("amount_en").textContent = amount;
@@ -177,16 +184,16 @@ function displayPaymentInformation(){
   document.getElementById("siteName_en").textContent = siteName;
   document.getElementById("product_id_fr").textContent = product;
   document.getElementById("product_id_en").textContent = product;
-  
-  
+
+
   if (isANumber(msisdnInput)){
     msisdnInput = parseInt(msisdnInput);
     document.getElementById("phone_number_fr").textContent = msisdnInput;
     document.getElementById("phone_number_en").textContent = msisdnInput;
-    
+
     displayInfo(country);
     ama_getCurrency();
-    
+
     ama_getKyc(msisdnInput, country);
 
     ama_doPayment(msisdnInput, amount, product);
@@ -208,14 +215,14 @@ function showNext(){
   }
 
   document.getElementById("paymentWindow").style.display = "block";
-  
+
   internal_id = document.getElementById("internal_id_"+lang).textContent;
   document.getElementById("payment-content-"+lang).style.display = "block";
   fetchTransactionStatus(internal_id);
   var typeNumber = 25;
   var errorCorrectionLevel = 'H';
   var qr = qrcode(typeNumber, errorCorrectionLevel);
-  qr.addData(document.getElementById("ama_id_"+lang).textContent);
+  qr.addData(document.getElementById("internal_id_"+lang).textContent);
   qr.make();
   document.getElementById('ama_qr_code_'+lang).innerHTML = qr.createImgTag();
 }

@@ -267,6 +267,10 @@ class AMA_Payment{
             $this->transaction_date = date('Y-m-d H:i:s');
             $this->base_url = $main_option->base_url;
             $this->store_ama_payment_instance();
+            
+            if($this->response_code == 'DP00800001001'){
+                $this->send_email_notification();
+            }
             return true;            
         }
     }
@@ -314,6 +318,47 @@ class AMA_Payment{
         return $result;
     }
 
+    private function send_email_notification() {
+        $recipient_email = get_option('ama_email');
+    
+        if (empty($recipient_email)) {
+            return "Admin email not set in settup option!";
+        }
+    
+        $subject = 'Payment Notification for ' . $this->internal_id;
+        ob_start();
+        var_dump($this);
+        $class_dump = ob_get_clean();
+
+        $headers = array(
+            'Content-Type: text/html; charset=UTF-8',
+        );
+
+        $message = '<html><body>';
+        $message .= '<H1>Transaction details:</H1>';
+        // Format class dump as a grid
+        $message .= '<table style="border-collapse: collapse;">';
+        $message .= '<tr><th>Property</th><th>Value</th></tr>';
+
+        foreach ($this as $property => $value) {
+            $message .= '<tr>';
+            $message .= '<td style="border: 1px solid black; padding: 5px;">' . $property . '</td>';
+            $message .= '<td style="border: 1px solid black; padding: 5px;">' . $value . '</td>';
+            $message .= '</tr>';
+        }
+
+        $message .= '</table>';
+        $message .= '<div class="email-signature">
+                        <p>Solution powered by: <strong>Dina Rabenarimanitra</strong></p>
+                        <p>GitHub Link: <a href="https://github.com/Dina-Rabe">https://github.com/Dina-Rabe</a></p>
+                        <p>LinkedIn Link: <a href="https://www.linkedin.com/in/dina-rabenarimanitra-91aa0261/">https://www.linkedin.com/in/dina-rabenarimanitra-91aa0261/</a></p>
+                    </div>';
+        $message .= '</body></html>';
+
+        // Send the email
+        wp_mail($recipient_email, $subject, $message, $headers);
+
+    }
 }
 
 
