@@ -1,0 +1,233 @@
+
+.info-window {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding-left: 10px;
+  padding-right: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ 
+  
+}
+
+.payment-window {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding-left: 10px;
+  padding-right: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  
+}
+
+.info-content {
+background-color: #ffffff;
+padding: 20px;
+border-radius: 10px;
+text-align: center;
+border: #e30a17;
+border-style: outset;
+border-width: 2px;
+width: 100%;
+height: 100%;
+overflow: auto;
+}
+
+.payment-content {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  border: #e30a17;
+  border-style: outset;
+  border-width: 2px;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  }
+
+.info-content p {
+margin-bottom: 10px;
+}
+.payment-content p {
+  margin-bottom: 10px;
+  }
+
+/* Styling for the confirm button */
+button {
+background-color: #e30a17;
+color: #ffffff;
+border: none;
+padding: 10px 20px;
+border-radius: 5px;
+font-weight: bold;
+cursor: pointer;
+margin: 5px;
+}
+
+/* Customize the label */
+#ama_label {
+    color: #e30a17;
+    font-weight: bold;
+  }
+  
+/* Customize the input field */
+#ama_msisdn {
+color: #e30a17;
+border-color: #e30a17;
+color: black;
+border-block-color: #e30a17;
+border-style: solid;
+border-radius: 5px;
+padding: 10px 10px;
+}
+
+/* Button hover styles */
+#ama_submit:hover {
+background-color: #ffffff;
+color: #e30a17;
+}
+
+.internal_id, .ama_id{
+  font-size: larger;
+  font-weight: bold;
+  color: #e30a17;
+  font-style: blink;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f2f2f2;
+  margin: 0;
+  padding: 0;
+}
+
+.info-content {
+  display: none;
+}
+
+.info-content h2 {
+  color: #e30a17;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.info-content h3 {
+  color: #e30a17;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.info-content p {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.info-content em {
+  font-style: italic;
+  font-size: 14px;
+  color: #555;
+}
+
+.info-content button {
+  background-color: #e30a17;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.payment-content {
+  display: none;
+}
+
+.payment-content h2 {
+  color: #e30a17;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.payment-content h3 {
+  color: #e30a17;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.container {
+  margin-top: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table td {
+  padding: 5px;
+  border-bottom: 1px solid #ccc;
+}
+
+table td:first-child {
+  font-weight: bold;
+}
+
+.payment-content button {
+  background-color: #e30a17;
+  color: #fff;
+  border: none;
+  padding: 5px 5px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+
+/* Loading section */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.loading-text {
+  text-align: center;
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #e30a17;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #e30a17; /* Updated animation color */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
