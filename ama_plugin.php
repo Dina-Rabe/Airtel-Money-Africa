@@ -114,15 +114,19 @@ add_action( 'rest_api_init', 'register_ama_currency_route' );
 function set_amount($atts, $content = null) {
     $content = wp_kses_post($content);
 
-    wp_enqueue_script('ama_transaction_amount', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
+    // wp_enqueue_script('ama_transaction_amount', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
 
-    return '<span id="transaction_amount">' . $content . '</span>';
+    return '<div class="loading-overlay" id="loadingOverlay">
+                <div class="loading-text">Loading...</div>
+                <div class="loading-spinner"></div>
+            </div>
+            <span id="transaction_amount">' . $content . '</span>';
 }
 
 function set_product_code($atts, $content = null) {
     $content = wp_kses_post($content);
 
-    wp_enqueue_script('ama_product_code', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
+    // wp_enqueue_script('ama_product_code', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
 
     return '<span id="product_code">' . $content . '</span>';
 }
@@ -132,6 +136,9 @@ function set_form($atts, $content = null) {
     $payment_confirmation = file_get_contents(plugin_dir_url( __FILE__ ) . 'ama_content/payment_confirmation.html');
 
     wp_enqueue_script('ama_form', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
+    wp_enqueue_script('ama_qrcode', plugin_dir_url(__FILE__) . 'ama_content/qrcode.js', array('jquery'), '1.0', true);
+    wp_enqueue_script('ama_jsPDF', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', array('jquery'), '1.0', true);
+    wp_enqueue_script('ama_html2canva', 'https://cdn.jsdelivr.net/npm/html2canvas/dist/html2canvas.min.js', array('jquery'), '1.0', true);
     wp_enqueue_style( 'ama_style', plugin_dir_url( __FILE__ ) . 'ama_content/style.css' );
 
     return  '<form id="ama_form">
