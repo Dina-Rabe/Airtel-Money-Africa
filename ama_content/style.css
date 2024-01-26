@@ -76,41 +76,18 @@ cursor: pointer;
 margin: 5px;
 }
 
-/* Customize the label */
-#ama_label {
-    color: #e30a17;
-    font-weight: bold;
-  }
   
 /* Customize the input field */
-#ama_msisdn {
-color: #e30a17;
-border-color: #e30a17;
-color: black;
-border-block-color: #e30a17;
-border-style: solid;
-border-radius: 5px;
-padding: 10px 10px;
-}
+
 
 /* Button hover styles */
-#ama_submit:hover {
-background-color: #ffffff;
-color: #e30a17;
-}
+
 
 .internal_id, .ama_id{
   font-size: larger;
   font-weight: bold;
   color: #e30a17;
   font-style: blink;
-}
-
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f2f2f2;
-  margin: 0;
-  padding: 0;
 }
 
 .info-content {
@@ -205,9 +182,10 @@ table td:first-child {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 9999;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: #cccccc;
   padding: 20px;
   border-radius: 5px;
+  
 }
 
 .loading-text {
@@ -215,6 +193,8 @@ table td:first-child {
   font-size: 18px;
   margin-bottom: 10px;
   color: #e30a17;
+  justify-content: center;
+  align-items: center;
 }
 
 .loading-spinner {
@@ -225,9 +205,80 @@ table td:first-child {
   border-top: 4px solid #e30a17; /* Updated animation color */
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  
 }
 
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+.ama_form {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  margin: 0 auto;
+  align-content: center;
+}
+
+/* Customize the label */
+.ama_label {
+  color: #e30a17;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.ama_input {
+  color: #e30a17;
+  border-color: #e30a17;
+  border-style: solid;
+  border-radius: 5px;
+  padding: 10px 10px;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
+
+.ama_button {
+  background-color: #e30a17;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.ama_button:hover {
+  background-color: #ffffff;
+  color: #e30a17;
+  }
+
+.ama-grid-item {
+  background-color: white;
+  padding: 20px;
+  margin: 10px;
+  border: 1px solid #e30a17;
+  border-radius: 10px;
+}
+
+.ama_prop, .ama_empty_message {
+  font-weight: bold;
+  color: #e30a17;
+  font-size: medium;
+}
+
+.ama_text_value{
+  margin-left: 20px;
+  font-size: smaller;
+}
+
+.ama_div_button, .ama_empty_message, .ama_center_div{
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

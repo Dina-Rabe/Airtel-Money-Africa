@@ -103,24 +103,24 @@ function ama_check_transaction_status_callback($request){
 
 }
 
-//This is commented to avoid token to be fetched directly through the REST API
-add_action('rest_api_init', 'register_ama_fetch_token');
+function ama_fetch_transaction_list() {
+    register_rest_route('ama/v1', '/lists_transaction', array(
+        'methods'  => 'POST',
+        'callback' => 'ama_fetch_transaction_list_callback',
+    ));
+}
 
-add_action('rest_api_init', 'register_ama_check_transaction_status');
-add_action('rest_api_init', 'register_ama_do_payment');
-add_action('rest_api_init', 'register_ama_fetch_kyc_info');
-add_action( 'rest_api_init', 'register_ama_currency_route' );
-
+function ama_fetch_transaction_list_callback($request) {
+    $params = $request->get_params();
+    $ama_transactions = new AMA_Transactions($params);
+    return $ama_transactions->list_AMA_Payment;
+}
 function set_amount($atts, $content = null) {
     $content = wp_kses_post($content);
 
     // wp_enqueue_script('ama_transaction_amount', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
 
-    return '<div class="loading-overlay" id="loadingOverlay">
-                <div class="loading-text">Loading...</div>
-                <div class="loading-spinner"></div>
-            </div>
-            <span id="transaction_amount">' . $content . '</span>';
+    return '<span id="transaction_amount">' . $content . '</span>';
 }
 
 function set_product_code($atts, $content = null) {
@@ -141,21 +141,8 @@ function set_form($atts, $content = null) {
     wp_enqueue_script('ama_html2canva', 'https://cdn.jsdelivr.net/npm/html2canvas/dist/html2canvas.min.js', array('jquery'), '1.0', true);
     wp_enqueue_style( 'ama_style', plugin_dir_url( __FILE__ ) . 'ama_content/style.css' );
 
-    return  '<form id="ama_form">
-                <label for="msisdn" id="ama_label">MSISDN:</label>
-                <input type="tel" id="ama_msisdn" name="msisdn" placeholder="Phone number" reauired />
-                <button type="button" id="ama_submit" url="" onclick="displayPaymentInformation()">Airtel Money</button>
-            </form>'
-            . $payment_confirmation 
-            ;
+    return $payment_confirmation;
 }
-
-add_shortcode( 'ama_amount', 'set_amount' );
-add_shortcode( 'ama_product_code', 'set_product_code' );
-add_shortcode( 'ama_form', 'set_form' );
-
-// Add the admin menu page
-add_action( 'admin_menu', 'ama_add_admin_page' );
 
 function ama_add_admin_page() {
     add_menu_page(
@@ -168,7 +155,6 @@ function ama_add_admin_page() {
     );
 }
 
-// Render the settings page
 function ama_render_settings_page() {
     ?>
     <div class="wrap">
@@ -183,9 +169,6 @@ function ama_render_settings_page() {
     </div>
     <?php
 }
-
-// Register settings
-add_action( 'admin_init', 'ama_register_settings' );
 
 function ama_register_settings() {
     // Register the settings fields
@@ -381,8 +364,21 @@ function create_ama_success_transaction_view() {
     // Define the SQL query for creating the view
     $query = "
         CREATE VIEW IF NOT EXISTS $table_name AS
-        SELECT DISTINCT
-            msisdn,
+        SELECT msisdn,
+            amount,
+            reference,
+            internal_id,
+            am_id,
+            status,
+            response_code,
+            base_url,
+            MIN(transaction_date) as transaction_date
+        FROM
+            {$wpdb->prefix}ama_payments
+        WHERE
+            response_code = 'DP00800001001'
+            AND status = 'TS'
+            GROUP BY msisdn,
             amount,
             reference,
             internal_id,
@@ -390,11 +386,6 @@ function create_ama_success_transaction_view() {
             status,
             response_code,
             base_url
-        FROM
-            {$wpdb->prefix}ama_payments
-        WHERE
-            response_code = 'DP00800001001'
-            AND status = 'TS'
     ";
     
     // Execute the SQL query to create the view
@@ -408,8 +399,19 @@ function create_ama_failed_transaction_view() {
     // Define the SQL query for creating the view
     $query = "
         CREATE VIEW IF NOT EXISTS $table_name AS
-        SELECT DISTINCT
-            msisdn,
+        SELECT msisdn,
+            amount,
+            reference,
+            internal_id,
+            am_id,
+            status,
+            response_code,
+            base_url,
+            MIN(transaction_date) as transaction_date
+        FROM
+            {$wpdb->prefix}ama_payments
+        WHERE status = 'TF'
+        GROUP BY msisdn,
             amount,
             reference,
             internal_id,
@@ -417,9 +419,6 @@ function create_ama_failed_transaction_view() {
             status,
             response_code,
             base_url
-        FROM
-            {$wpdb->prefix}ama_payments
-        WHERE status = 'TF'
     ";
     
     // Execute the SQL query to create the view
@@ -439,8 +438,22 @@ function create_ama_in_progress_transaction_today() {
     // Construct the SQL query for creating the view
     $query = "
         CREATE VIEW IF NOT EXISTS $viewName AS
-        SELECT DISTINCT
-            msisdn,
+        SELECT msisdn,
+            amount,
+            reference,
+            internal_id,
+            am_id,
+            status,
+            response_code,
+            base_url,
+            MIN(transaction_date) as transaction_date
+        FROM
+            $tableName
+        WHERE
+            response_code = 'DP00800001006'
+            AND transaction_date >= NOW() - INTERVAL 1 DAY
+            AND internal_id NOT IN (SELECT DISTINCT internal_id FROM {$wpdb->prefix}ama_payments where status = 'TF' OR status = 'TS')
+            GROUP BY msisdn,
             amount,
             reference,
             internal_id,
@@ -448,13 +461,7 @@ function create_ama_in_progress_transaction_today() {
             status,
             response_code,
             base_url
-        FROM
-            $tableName
-        WHERE
-            response_code = 'DP00800001006'
-            AND status = 'TIP'
-            AND transaction_date >= NOW() - INTERVAL 1 DAY
-            AND internal_id NOT IN (SELECT DISTINCT internal_id FROM {$wpdb->prefix}ama_payments where status = 'TF' OR status = 'TS')";
+            ";
 
     // Execute the SQL query to create the view
     $wpdb->query( $query );
@@ -472,33 +479,84 @@ function create_ama_in_progress_transaction_before_today() {
     // Construct the SQL query for creating the view
     $query = "
         CREATE VIEW IF NOT EXISTS $viewName AS
-        SELECT DISTINCT
-            msisdn,
+        SELECT msisdn,
             amount,
             reference,
             internal_id,
             am_id,
             status,
             response_code,
-            base_url
+            base_url,
+            MIN(transaction_date) as transaction_date
         FROM
             $tableName
         WHERE
             response_code = 'DP00800001006'
-            AND status = 'TIP'
             AND transaction_date < NOW() - INTERVAL 1 DAY
-            AND internal_id NOT IN (SELECT DISTINCT internal_id FROM {$wpdb->prefix}ama_payments where status = 'TF' OR status = 'TS')";
+            AND internal_id NOT IN (SELECT DISTINCT internal_id FROM {$wpdb->prefix}ama_payments where status = 'TF' OR status = 'TS')
+            GROUP BY msisdn,
+            amount,
+            reference,
+            internal_id,
+            am_id,
+            status,
+            response_code,
+            base_url";
 
     // Execute the SQL query to create the view
     $wpdb->query( $query );
 }
 
+// Define the response code and message options
+function ama_register_options() {
+    add_option('ama_response_codes', array(
+        'DP00800001000' => 'The transaction is still processing and is in an ambiguous state. Please do the transaction enquiry to fetch the transaction status.',
+        'DP00800001001' => 'Transaction is successful.',
+        'DP00800001002' => 'Incorrect pin has been entered.',
+        'DP00800001003' => 'The user has exceeded their wallet allowed transaction limit.',
+        'DP00800001004' => 'The amount the user is trying to transfer is less than the minimum amount allowed.',
+        'DP00800001005' => 'User didn\'t enter the pin.',
+        'DP00800001006' => 'Transaction in pending state. Please check after some time.',
+        'DP00800001007' => 'User wallet does not have enough money to cover the payable amount.',
+        'DP00800001008' => 'The transaction was refused.',
+        'DP00800001009' => 'This is a generic refusal that has several possible causes.',
+        'DP00800001010' => 'Payee is already initiated for churn or barred or not registered on Airtel Money platform.',
+        'DP00800001024' => 'The transaction was timed out.',
+        'DP00800001025' => 'The transaction was not found.',
+        'DP00800001026' => 'X-signature and payload did not match.',
+        'DP00800001029' => 'Transaction has been expired.'
+    ));
+
+    register_setting('ama_options', 'ama_response_codes');
+}
+
+function fetch_transaction_status($atts, $content = null){
+    $content = wp_kses_post($content);
+    $fetch_transaction_page = file_get_contents(plugin_dir_url( __FILE__ ) . 'ama_content/fetch_transaction.html');
+    wp_enqueue_style( 'ama_style', plugin_dir_url( __FILE__ ) . 'ama_content/style.css' );
+    wp_enqueue_script('ama_form', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
+    return $fetch_transaction_page;
+}
+
 register_activation_hook( __FILE__, 'create_ama_failed_transaction_view' );
-
 register_activation_hook( __FILE__, 'create_ama_in_progress_transaction_before_today' );
-
 register_activation_hook( __FILE__, 'create_ama_in_progress_transaction_today' );
-
 register_activation_hook( __FILE__, 'create_ama_success_transaction_view' );
-
 register_activation_hook( __FILE__, 'create_ama_payment_table' );
+
+add_action('rest_api_init', 'register_ama_fetch_token');
+add_action( 'admin_menu', 'ama_add_admin_page' );
+add_action( 'admin_init', 'ama_register_settings' );
+add_action( 'admin_init', 'ama_register_options');
+
+add_action('rest_api_init', 'register_ama_check_transaction_status');
+add_action('rest_api_init', 'register_ama_do_payment');
+add_action('rest_api_init', 'register_ama_fetch_kyc_info');
+add_action('rest_api_init', 'register_ama_currency_route' );
+add_action('rest_api_init', 'ama_fetch_transaction_list');
+
+add_shortcode( 'ama_amount', 'set_amount' );
+add_shortcode( 'ama_product_code', 'set_product_code' );
+add_shortcode( 'ama_form', 'set_form' );
+
+add_shortcode('ama_fetch_transaction_status', 'fetch_transaction_status');

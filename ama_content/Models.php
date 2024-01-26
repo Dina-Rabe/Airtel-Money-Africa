@@ -133,22 +133,57 @@ class AMA_Payment{
     public $base_url;
 
     public function __construct($params){
-        if (isset($params["msisdn"]) && isset($params["amount"]) && isset($params["reference"])) {
-            $this->msisdn = $params['msisdn'];
-            $this->amount = $params['amount'];
-            $this->reference = $params['reference'];
-            $this->internal_id = str_replace(' ','-',$this->reference) . '-' . $this->msisdn . '-' . $this->amount . '-' . time();
-        }else{
-            $db_result = $this->fetch_ama_payment_instance($params['internal_id']);
-            $this->msisdn = $db_result['msisdn'];
-            $this->amount = intval($db_result['amount']);
-            $this->reference = $db_result['reference'];
-            $this->internal_id = $params['internal_id'];
+        
+        if (isset($params["msisdn"])) {
+            $this->msisdn = $params["msisdn"];
         }
         
-        $this->transaction_type = 'init_command';
-        $this->transaction_date = date('Y-m-d H:i:s');
-        $this->store_ama_payment_instance();
+        if (isset($params["amount"])) {
+            $this->amount = $params["amount"];
+            
+        }
+        
+        if (isset($params["reference"])) {
+            $this->reference = $params["reference"];
+            
+        }
+
+        if (isset($params['internal_id'])) {
+            $db_result = $this->fetch_ama_payment_instance($params['internal_id']);
+            if ($this->msisdn == null){$this->msisdn = $db_result['msisdn']; }
+            if ($this->amount == null) {$this->amount = intval($db_result['amount']); }
+            if ($this->reference == null) {$this->reference = $db_result['reference'];}
+            if ($this->transaction_date == null) {$this->transaction_date = $db_result['transaction_date']; }
+            $this->internal_id = $params['internal_id'];
+        }else{
+            $this->transaction_type = 'init_command';
+            $this->internal_id = str_replace(' ','-',$this->reference) . '-' . $this->msisdn . '-' . $this->amount . '-' . time();
+            $this->transaction_date = date('Y-m-d H:i:s');
+            $this->store_ama_payment_instance();
+        }
+
+        if (isset($params["am_id"])) {
+            $this->am_id = $params["am_id"];
+        }
+        
+        if (isset($params["status"])) {
+            $this->status = $params["status"];
+        }
+        
+        if (isset($params["response_code"])) {
+            $this->response_code = $params["response_code"];
+            $responseCodes = get_option("ama_response_codes");
+            $this->message = $responseCodes[$this->response_code];
+        }
+        
+        if (isset($params["base_url"])) {
+            $this->base_url = $params["base_url"];            
+        }
+
+        if (isset($params["transaction_date"])){
+            $this->transaction_date = $params["transaction_date"];
+        }
+        
     }
 
     public function do_payment(){
@@ -259,7 +294,6 @@ class AMA_Payment{
 
             // Extract values from the response
             $this->am_id = $data['data']['transaction']['airtel_money_id'];
-            $this->message = $data['data']['transaction']['message'];
             $this->status = $data['data']['transaction']['status'];
             $this->response_code = $data['status']['response_code'];
             $this->code = $data['status']['code'];
@@ -267,7 +301,11 @@ class AMA_Payment{
             $this->transaction_date = date('Y-m-d H:i:s');
             $this->base_url = $main_option->base_url;
             $this->store_ama_payment_instance();
+            $responseCodes = get_option("ama_response_codes");
+            $this->message = $responseCodes[$this->response_code];
+            $this->message .= ' '. $data['data']['transaction']['message'];
             
+
             if($this->response_code == 'DP00800001001'){
                 $this->send_email_notification();
             }
@@ -275,7 +313,7 @@ class AMA_Payment{
         }
     }
 
-    function store_ama_payment_instance() {
+    private function store_ama_payment_instance() {
         global $wpdb;
         
         $table_name = $wpdb->prefix . 'ama_payments';
@@ -300,12 +338,12 @@ class AMA_Payment{
         );
     }
 
-    function fetch_ama_payment_instance($internal_id) {
+    private function fetch_ama_payment_instance($internal_id) {
         global $wpdb;
     
         $table_name = $wpdb->prefix . 'ama_payments';
     
-        $sql = "SELECT msisdn, amount, reference FROM $table_name 
+        $sql = "SELECT msisdn, amount, reference, transaction_date FROM $table_name 
                 WHERE internal_id = %s
                 AND amount IS NOT NULL
                 AND msisdn IS NOT NULL
@@ -314,7 +352,6 @@ class AMA_Payment{
     
         $prepared_sql = $wpdb->prepare($sql, $internal_id);
         $result = $wpdb->get_row($prepared_sql, ARRAY_A);
-        
         return $result;
     }
 
@@ -361,5 +398,136 @@ class AMA_Payment{
     }
 }
 
+class AMA_Transactions{
+    public $list_AMA_Payment =[];
 
+    public function __construct($params){
+        if (isset($params['msisdn'])){
+            $db_result = $this->fetch_views_data_by_msisdn($params['msisdn']);
+            foreach ($db_result as $row) {
+                $msisdn = $row['msisdn'];
+                $amount = $row['amount'];
+                $reference = $row['reference'];
+                $internalId = $row['internal_id'];
+                $amId = $row['am_id'];
+                $status = $row['status'];
+                $responseCode = $row['response_code'];
+                $baseUrl = $row['base_url'];
+                $transactionDate = $row['transaction_date'];
+                
+                $temp_ama = new AMA_Payment(
+                    array(
+                        'msisdn'=> $msisdn,
+                        'amount'=> $amount,
+                        'reference'=> $reference,
+                        'internal_id'=> $internalId,
+                        'am_id'=> $amId,
+                        'status'=> $status,
+                        'response_code'=> $responseCode,
+                        'base_url'=> $baseUrl,
+                        'transaction_date' => $transactionDate,
+
+                    )
+                );
+                $this->list_AMA_Payment[] = $temp_ama;
+            }
+        }
+        if (isset($params['internal_id'])){
+            $temp_ama = new AMA_Payment(Array(
+                'internal_id'=> $params['internal_id'],
+            ));
+            $isTrue = $temp_ama->check_transaction_status();
+            $this->list_AMA_Payment[] = $temp_ama;
+        }
+    }
+
+    private function fetch_views_data_by_msisdn($msisdn_param){
+        global $wpdb;
+    
+        $tablePrefix = $wpdb->prefix;
+        
+        $query = "
+            SELECT
+                msisdn,
+                amount,
+                reference,
+                internal_id,
+                am_id,
+                status,
+                response_code,
+                base_url,
+                MIN(transaction_date) as transaction_date
+            FROM (
+                SELECT
+                    msisdn,
+                    amount,
+                    reference,
+                    internal_id,
+                    am_id,
+                    status,
+                    response_code,
+                    base_url,
+                    transaction_date
+                FROM {$tablePrefix}ama_failed_transaction_view
+                
+                UNION
+                
+                SELECT
+                    msisdn,
+                    amount,
+                    reference,
+                    internal_id,
+                    am_id,
+                    status,
+                    response_code,
+                    base_url,
+                    transaction_date
+                FROM {$tablePrefix}ama_in_progress_transaction_before_today
+                
+                UNION
+                
+                SELECT
+                    msisdn,
+                    amount,
+                    reference,
+                    internal_id,
+                    am_id,
+                    status,
+                    response_code,
+                    base_url,
+                    transaction_date
+                FROM {$tablePrefix}ama_in_progress_transaction_today
+                
+                UNION
+                
+                SELECT
+                    msisdn,
+                    amount,
+                    reference,
+                    internal_id,
+                    am_id,
+                    status,
+                    response_code,
+                    base_url,
+                    transaction_date
+                FROM {$tablePrefix}ama_success_transaction_view
+            ) AS temp_table
+            WHERE temp_table.msisdn = %s
+            GROUP BY
+                msisdn,
+                amount,
+                reference,
+                internal_id,
+                am_id,
+                status,
+                response_code,
+                base_url;
+        ";
+        
+        $query = $wpdb->prepare($query, $msisdn_param);
+        $results = $wpdb->get_results($query, ARRAY_A);
+        
+        return $results;
+    }
+}
 

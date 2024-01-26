@@ -1,3 +1,17 @@
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-text">Loading...</div>
+    <div class="loading-spinner"></div>
+</div>
+
+<form id="ama_form" class="ama_form">
+    <div class="ama_center_div">
+        <label for="msisdn" id="ama_label" class="ama_label">MSISDN:</label>
+    </div>
+    <input type="tel" id="ama_msisdn" name="msisdn" class="ama_input" placeholder="Phone number" reauired  />
+    <div class="ama_center_div">
+        <button type="button" id="ama_submit" class="ama_button" url="" onclick="displayPaymentInformation()">Airtel Money</button>
+    </div>
+</form>
 <div id="infoWindow" class="info-window" style="display: none;">
     <div class="info-content" id="info_content_fr" style="display: none;">
         <h2>Bienvenue <span id="ama_last_name_info_fr"></span>!</H2>
@@ -5,8 +19,8 @@
         <p>Veuillez vérifier votre téléphone avec le numero <span id="phone_number_fr"></span> et une fois que vous recevez le push USSD, veuillez confirmer avec votre code PIN.</p>
         <p>Votre référence de transaction sur ce site est: </br><span class="internal_id" id="internal_id_fr"></span></p>
         <em>Validation du code PIN à effectuer uniquement sur le téléphone.</em></br>
-        <button id="confirmButton" onclick="closeInfoWindow()">Fermer cette fenêtre</button>
-        <button id="nextButton" onclick="showNext()">Suivant</button>
+        <button class="ama_button" id="confirmButton" onclick="closeInfoWindow()">Fermer cette fenêtre</button>
+        <button class="ama_button" id="nextButton" onclick="showNext()">Suivant</button>
     </div>
     <div class="info-content" id="info_content_en" style="display: none;">
         <h2>Welcome <span id="ama_last_name_info_en"></span>!</H2>
@@ -14,8 +28,8 @@
         <p>Please check your phone onboarding the number <span id="phone_number_en"></span> and once you receive the USSD push, please confirm with your PIN number.</p>
         <p>Your transaction ID on this website is: </br><span class="internal_id" id="internal_id_en"></span></p>
         <em>PIN validation to be done only on the phone.</em></br>
-        <button id="confirmButton" onclick="closeInfoWindow()">Close this window</button>
-        <button id="nextButton" onclick="showNext()">Next</button>
+        <button class="ama_button" id="confirmButton" onclick="closeInfoWindow()">Close this window</button>
+        <button class="ama_button" id="nextButton" onclick="showNext()">Next</button>
     </div>
     
 
@@ -23,13 +37,13 @@
         <H2>Une erreur est survenue!</H2>
         <p>Vérifier votre connexion internet !</p>
         <p>Ou il se peut que le numéro que vous avez entré ne possède pas de compte Airtel Money. Entrer le numero sans le code pays.</p>
-        <button id="confirmButton" onclick="closeInfoWindow()">Fermer cette fenêtre</button>
+        <button class="ama_button" id="confirmButton" onclick="closeInfoWindow()">Fermer cette fenêtre</button>
     </div>
     <div class="info-content" id="error_en" style="display: none;">
         <H2>Something went wrong!</H2>
         <p>Please check your internet connection</p>
         <p>Or maybe your number doesn't have Airtel Money Account. Enter your phone number without country code.</p>
-        <button id="confirmButton" onclick="closeInfoWindow()">Close this window</button>
+        <button class="ama_button" id="confirmButton" onclick="closeInfoWindow()">Close this window</button>
     </div>
     
     
@@ -83,10 +97,10 @@
                 </table>
             </div>
         </div>
-        <button id="previousButton" onclick="showPrevious()">Précédent</button>
-        <button id="refreshButton" onclick="showNext()">Rafraichir la page</button>
-        <button id="downloadPDF" onclick="downloadPaymentInfo('pdf-content-fr', 'ama_internal_id_fr')">Telecharger en PDF</button>
-        <button id="closeButton" onclick="closePaymentWindow()">Fermer cette fenêtre</button>
+        <button class="ama_button" id="previousButton" onclick="showPrevious()">Précédent</button>
+        <button class="ama_button" id="refreshButton" onclick="showNext()">Rafraichir la page</button>
+        <button class="ama_button" id="downloadPDF" onclick="downloadPaymentInfo('pdf-content-fr', 'ama_internal_id_fr')">Telecharger en PDF</button>
+        <button class="ama_button" id="closeButton" onclick="closePaymentWindow()">Fermer cette fenêtre</button>
     </div>
 
     <div class="payment-content" id="payment-content-en" style="display: none;">
@@ -136,10 +150,10 @@
                 </table>
             </div>
         </div>
-        <button id="previousButton" onclick="showPrevious()">Previous</button>
-        <button id="refreshButton" onclick="showNext()">Refresh this page</button>
-        <button id="downloadPDF" onclick="downloadPaymentInfo('pdf-content-en', 'ama_internal_id_en')">Download PDF</button>
-        <button id="closeButton" onclick="closePaymentWindow()">Close this window</button>
+        <button class="ama_button" id="previousButton" onclick="showPrevious()">Previous</button>
+        <button class="ama_button" id="refreshButton" onclick="showNext()">Refresh this page</button>
+        <button class="ama_button" id="downloadPDF" onclick="downloadPaymentInfo('pdf-content-en', 'ama_internal_id_en')">Download PDF</button>
+        <button class="ama_button" id="closeButton" onclick="closePaymentWindow()">Close this window</button>
         
     </div>
     

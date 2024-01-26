@@ -287,3 +287,118 @@ function hideLoadingOverlay(loadingElement) {
   loadingElement.style.display = 'none';
   console.log("HIDE!");
 }
+
+function fetchTransactionList(msisdn_param, internal_id_param) {
+  console.log(msisdn_param);
+  var data = {
+    msisdn: msisdn_param,
+    internal_id: internal_id_param
+  };
+  
+  fetch("/wp-json/ama/v1/lists_transaction", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  })
+    .then(function(response) {
+      return response.json();
+    })
+    .then(function(data) {
+      populate_transaction_list(data);
+    })
+    .catch(function(error) {
+      console.log("Error:", error);
+    });
+}
+
+function populate_transaction_list(json_list){
+  var container = document.getElementById('ama_list_transaction');
+  container.innerHTML = "";
+  if(json_list[0].msisdn == null){
+    var gridItem = document.createElement('div');
+    gridItem.classList.add('ama-grid-item');
+    var emptyMessage = document.createElement('span');
+    emptyMessage.classList.add('ama_empty_message');
+    emptyMessage.textContent = '***ANY TRANSACTION AVAILABLE***';
+    gridItem.appendChild(emptyMessage);
+    container.appendChild(gridItem);
+    hideLoadingOverlay(document.getElementById('loadingOverlay'));
+    return false;
+  }
+  for (var i = 0; i < json_list.length; i++) {
+    var item = json_list[i];
+
+    var gridItem = document.createElement('div');
+    gridItem.classList.add('ama-grid-item');
+    if (item['msisdn'] == null){
+      continue;
+    }
+    for (var prop in item) {
+      if (prop == 'code' || prop == 'success' || prop == "transaction_type"){
+        continue;
+      }else{
+        if (item.hasOwnProperty(prop)) {
+          var textDiv = document.createElement('p');
+          textDiv.classList.add('ama_text_div');
+          var properties = document.createElement('span');
+          properties.classList.add('ama_prop');
+          var text_value = document.createElement('span');
+          text_value.classList.add('ama_text_value');
+          properties.textContent = transformText(prop) + ":";
+          text_value.textContent = item[prop];
+          textDiv.appendChild(properties);
+          textDiv.appendChild(text_value);
+          gridItem.appendChild(textDiv);
+        }
+      }
+    }
+    var refreshButton = document.createElement('button');
+    refreshButton.textContent = "Verify";
+    refreshButton.classList.add('ama_button');
+    var divButton = document.createElement('div');
+    divButton.classList.add('ama_div_button');
+    var showButton = document.createElement('button');
+    showButton.textContent = "Show";
+    showButton.classList.add("ama_button");
+    showButton.addEventListener('click', show_transactions_details);
+    divButton.appendChild(showButton);
+    
+    if (item['response_code'] == 'DP00800001006'){
+      divButton.appendChild(refreshButton);  
+    }
+    
+    gridItem.appendChild(divButton);
+    container.appendChild(gridItem);
+  }
+  hideLoadingOverlay(document.getElementById('loadingOverlay'));
+}
+
+function transaction_list() {
+
+  showLoadingOverlay(document.getElementById('loadingOverlay'));
+  const input_msisdn = document.getElementById("ama_msisdn").value;
+  const input_internal_id = document.getElementById("ama_internal_id").value;
+  let input_msisdn_is_number = isANumber(input_msisdn);
+  document.getElementById('ama_list_transaction').innerHTML = "";
+  var data = fetchTransactionList(input_msisdn, input_internal_id);
+  
+  
+}
+
+function show_transactions_details(){
+  alert("Kely sisa poooriiii!!!!!");
+}
+
+function transformText(text) {
+  // Replace underscores with spaces
+  var replacedText = text.replace(/_/g, ' ');
+
+  // Capitalize the words and convert to full uppercase
+  var capitalizedText = replacedText.replace(/(?:^|\s)\S/g, function(char) {
+    return char.toUpperCase();
+  }).toUpperCase();
+
+  return capitalizedText;
+}
