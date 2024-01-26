@@ -535,6 +535,9 @@ function fetch_transaction_status($atts, $content = null){
     $fetch_transaction_page = file_get_contents(plugin_dir_url( __FILE__ ) . 'ama_content/fetch_transaction.html');
     wp_enqueue_style( 'ama_style', plugin_dir_url( __FILE__ ) . 'ama_content/style.css' );
     wp_enqueue_script('ama_form', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
+    wp_enqueue_script('ama_qrcode', plugin_dir_url(__FILE__) . 'ama_content/qrcode.js', array('jquery'), '1.0', true);
+    wp_enqueue_script('ama_jsPDF', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', array('jquery'), '1.0', true);
+    wp_enqueue_script('ama_html2canva', 'https://cdn.jsdelivr.net/npm/html2canvas/dist/html2canvas.min.js', array('jquery'), '1.0', true);
     return $fetch_transaction_page;
 }
 

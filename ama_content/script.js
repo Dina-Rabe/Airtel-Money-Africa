@@ -268,11 +268,30 @@ function closePaymentWindow(){
 }
 
 function closeInfoWindow() {
-  document.getElementById("infoWindow").style.display = "none";
-  document.getElementById("info_content_fr").style.display = "none";
-  document.getElementById("info_content_en").style.display = "none";
-  document.getElementById('error_en').style.display = "none";
-  document.getElementById('error_fr').style.display = "none";
+  var infoWindow = document.getElementById("infoWindow");
+  var info_content_fr = document.getElementById("info_content_fr");
+  var info_content_en = document.getElementById("info_content_en");
+  var info_error_en = document.getElementById('error_en');
+  var info_error_fr = document.getElementById('error_fr');
+  if (!infoWindow == null){
+    infoWindow.style.display = "none";  
+  }
+
+  if (!info_content_fr == null){
+    info_content_fr.style.display = "none";
+  }
+
+  if (!info_content_en == null){
+    info_content_en.style.display = "none";
+  }
+
+  if (!info_error_fr == null){
+    info_error_fr.style.display = "none";
+  }
+
+  if (!info_error_en == null){
+    info_error_en.style.display = "none";
+  }
   hideLoadingOverlay(document.getElementById('loadingOverlay'));
 }
 
@@ -342,11 +361,19 @@ function populate_transaction_list(json_list){
         if (item.hasOwnProperty(prop)) {
           var textDiv = document.createElement('p');
           textDiv.classList.add('ama_text_div');
+
           var properties = document.createElement('span');
           properties.classList.add('ama_prop');
+
           var text_value = document.createElement('span');
-          text_value.classList.add('ama_text_value');
+
           properties.textContent = transformText(prop) + ":";
+          if(prop == "internal_id" || prop == "am_id"){
+            text_value.classList.add('ama_text_value'); 
+            text_value.classList.add('ama_internal_id');
+          }else{
+            text_value.classList.add('ama_text_value');
+          }
           text_value.textContent = item[prop];
           textDiv.appendChild(properties);
           textDiv.appendChild(text_value);
@@ -363,6 +390,7 @@ function populate_transaction_list(json_list){
     showButton.textContent = "Show";
     showButton.classList.add("ama_button");
     showButton.addEventListener('click', show_transactions_details);
+    refreshButton.addEventListener('click', verify_transactions_details)
     divButton.appendChild(showButton);
     
     if (item['response_code'] == 'DP00800001006'){
@@ -387,8 +415,41 @@ function transaction_list() {
   
 }
 
-function show_transactions_details(){
-  alert("Kely sisa poooriiii!!!!!");
+function show_transaction_info(internal_id){
+  showLoadingOverlay(document.getElementById('loadingOverlay'));
+  var country = navigator.language.substring(0,2);
+  var lang = 'en'
+  if (country === "fr"){
+    lang = 'fr';
+  }else{
+    lang = 'en';
+  }
+
+  document.getElementById("paymentWindow").style.display = "block";
+  document.getElementById("payment-content-"+lang).style.display = "block";
+  
+  fetchTransactionStatus(internal_id);
+  var typeNumber = 25;
+  var errorCorrectionLevel = 'H';
+  var qr = qrcode(typeNumber, errorCorrectionLevel);
+  console.log(lang);
+  qr.addData(internal_id);
+  qr.make();
+  document.getElementById('ama_qr_code_'+lang).innerHTML = qr.createImgTag();
+}
+
+function show_transactions_details(param1){
+  var divElement = this.closest(".ama-grid-item");
+  var textValueElement = divElement.querySelector(".ama_internal_id");
+  var code = textValueElement.innerText;
+  show_transaction_info(code);
+}
+
+function verify_transactions_details(param1){
+  var divElement = this.closest(".ama-grid-item");
+  var textValueElement = divElement.querySelector(".ama_internal_id");
+  var code = textValueElement.innerText;
+  show_transaction_info(code);
 }
 
 function transformText(text) {
