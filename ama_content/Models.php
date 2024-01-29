@@ -531,3 +531,154 @@ class AMA_Transactions{
     }
 }
 
+class AMA_Account {
+    // private $baseURL = 'standard/v1/users/balance';
+    
+    public $account_status;
+    public $currency;
+    public $balance;
+    
+    public function __construct(){
+        $temp_data = $this->getBalance();
+        $this->balance = $temp_data["data"]["balance"];
+        $this->currency = $temp_data["data"]["currency"];
+        $this->account_status = $temp_data["data"]["account_status"];
+    }
+    private function getBalance() {
+        $ama_option = new AMA_Options();
+        $token = $ama_option->get_ama_token();
+        $token_str = $token->access_token;
+        $api_url = $ama_option->base_url . 'standard/v1/users/balance';
+        $headers = array(
+            'Accept' => '*/*',
+            'Content-Type' => 'application/json',
+            'X-Country' => $ama_option->country_configured,
+            'X-Currency' => $ama_option->currency_configured,
+            'Authorization' => 'Bearer '. $token_str
+        );
+             
+        $args = array(
+            'headers' => $headers
+        );
+
+        $response = wp_remote_request($api_url, $args);
+
+        if (is_wp_error($response)) {
+            $error_message = $response->get_error_message();
+            return json_encode($error_message);
+        } else {
+            $response_body = wp_remote_retrieve_body($response);
+            return json_decode($response_body, true);
+        } 
+    }
+    public function getTotalTransactionCount() {
+        global $wpdb;
+    
+        // SQL query
+        $table_name = $wpdb->prefix . 'ama_payments';
+        $sql = "SELECT COUNT(DISTINCT internal_id) AS total_transaction FROM $table_name";
+    
+        // Execute the query
+        $result = $wpdb->get_results($sql);
+    
+        // Check if the query was successful
+        if ($wpdb->last_error) {
+            die("Error executing query: " . $wpdb->last_error);
+        }
+    
+        // Get the total transaction count
+        $totalTransactionCount = $result[0]->total_transaction;
+    
+        // Return the total transaction count
+        return $totalTransactionCount;
+    }
+
+    public function getTotalTransactionSuccessCount() {
+        global $wpdb;
+    
+        // SQL query
+        $table_name = $wpdb->prefix . 'ama_success_transaction_view';
+        $sql = "SELECT COUNT(*) AS total_transaction_success FROM $table_name";
+    
+        // Execute the query
+        $result = $wpdb->get_results($sql);
+    
+        // Check if the query was successful
+        if ($wpdb->last_error) {
+            die("Error executing query: " . $wpdb->last_error);
+        }
+    
+        // Get the total transaction success count
+        $totalTransactionSuccessCount = $result[0]->total_transaction_success;
+    
+        // Return the total transaction success count
+        return $totalTransactionSuccessCount;
+    }
+
+    public function getTotalTransactionFailedCount() {
+        global $wpdb;
+    
+        // SQL query
+        $table_name = $wpdb->prefix . 'ama_failed_transaction_view';
+        $sql = "SELECT COUNT(*) AS total_transaction_failed FROM $table_name";
+    
+        // Execute the query
+        $result = $wpdb->get_results($sql);
+    
+        // Check if the query was successful
+        if ($wpdb->last_error) {
+            die("Error executing query: " . $wpdb->last_error);
+        }
+    
+        // Get the total transaction failed count
+        $totalTransactionFailedCount = $result[0]->total_transaction_failed;
+    
+        // Return the total transaction failed count
+        return $totalTransactionFailedCount;
+    }
+    
+    function getTotalInProgressTransactionBeforeTodayCount() {
+        global $wpdb;
+    
+        // SQL query
+        $table_name = $wpdb->prefix . 'ama_in_progress_transaction_before_today';
+        $sql = "SELECT COUNT(*) AS total_transaction_in_progress FROM $table_name";
+    
+        // Execute the query
+        $result = $wpdb->get_results($sql);
+    
+        // Check if the query was successful
+        if ($wpdb->last_error) {
+            die("Error executing query: " . $wpdb->last_error);
+        }
+    
+        // Get the total in-progress transaction count before today
+        $totalInProgressTransactionCount = $result[0]->total_transaction_in_progress;
+    
+        // Return the total in-progress transaction count before today
+        return $totalInProgressTransactionCount;
+    }
+
+    function getTotalInProgressTransactionTodayCount() {
+        global $wpdb;
+    
+        // SQL query
+        $table_name = $wpdb->prefix . 'ama_in_progress_transaction_today';
+        $sql = "SELECT COUNT(*) AS total_transaction_in_progress FROM $table_name";
+    
+        // Execute the query
+        $result = $wpdb->get_results($sql);
+    
+        // Check if the query was successful
+        if ($wpdb->last_error) {
+            die("Error executing query: " . $wpdb->last_error);
+        }
+    
+        // Get the total in-progress transaction count for today
+        $totalInProgressTransactionCount = $result[0]->total_transaction_in_progress;
+    
+        // Return the total in-progress transaction count for today
+        return $totalInProgressTransactionCount;
+    }
+}
+

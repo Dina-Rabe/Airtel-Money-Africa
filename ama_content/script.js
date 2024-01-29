@@ -259,11 +259,26 @@ function downloadPaymentInfo(div_param, file_name_param) {
 }
 
 function closePaymentWindow(){
-  document.getElementById("paymentWindow").style.display = "none";
-  document.getElementById("payment-content-fr").style.display = "none";
-  document.getElementById("payment-content-en").style.display = "none";
-  document.getElementById('error_en').style.display = "none";
-  document.getElementById('error_fr').style.display = "none";
+  
+  if(document.getElementById("paymentWindow").style.display != "none"){
+    document.getElementById("paymentWindow").style.display = "none";
+  }
+
+  if(document.getElementById("payment-content-fr").style.display != "none"){
+    document.getElementById("payment-content-fr").style.display = "none";
+  }
+
+  if(document.getElementById("payment-content-en").style.display != "none"){
+    document.getElementById("payment-content-en").style.display = "none";
+  }
+
+  if(document.getElementById('error_en').style.display != "none"){
+    document.getElementById('error_en').style.display = "none";
+  }
+
+  if(document.getElementById('error_fr').style.display != "none"){
+    document.getElementById('error_fr').style.display = "none";
+  }
   hideLoadingOverlay(document.getElementById('loadingOverlay'));
 }
 
@@ -273,24 +288,24 @@ function closeInfoWindow() {
   var info_content_en = document.getElementById("info_content_en");
   var info_error_en = document.getElementById('error_en');
   var info_error_fr = document.getElementById('error_fr');
-  if (!infoWindow == null){
-    infoWindow.style.display = "none";  
+  if (document.getElementById("infoWindow").style.display != "none"){
+    document.getElementById("infoWindow").style.display = "none";  
   }
 
-  if (!info_content_fr == null){
-    info_content_fr.style.display = "none";
+  if (document.getElementById("info_content_fr").style.display != "none"){
+    document.getElementById("info_content_fr").style.display = "none";
   }
 
-  if (!info_content_en == null){
-    info_content_en.style.display = "none";
+  if (document.getElementById("info_content_en").style.display != "none"){
+    document.getElementById("info_content_en").style.display = "none";
   }
 
-  if (!info_error_fr == null){
-    info_error_fr.style.display = "none";
+  if (document.getElementById('error_en').style.display != "none"){
+    document.getElementById('error_en').style.display = "none";
   }
 
-  if (!info_error_en == null){
-    info_error_en.style.display = "none";
+  if (document.getElementById('error_fr').style.display != "none"){
+    document.getElementById('error_fr').style.display = "none";
   }
   hideLoadingOverlay(document.getElementById('loadingOverlay'));
 }

@@ -115,18 +115,41 @@ function ama_fetch_transaction_list_callback($request) {
     $ama_transactions = new AMA_Transactions($params);
     return $ama_transactions->list_AMA_Payment;
 }
+
+function ama_fetch_transaction_summary() {
+    register_rest_route('ama/v1', '/transaction_summary', array(
+        'methods'  => 'GET',
+        'callback' => 'ama_fetch_transaction_summary_callback',
+    ));
+}
+
+function ama_fetch_transaction_summary_callback($request) {
+    $account_management = new AMA_Account();
+    $total_transaction = $account_management->getTotalTransactionCount();
+    $success_transaction = $account_management->getTotalTransactionSuccessCount();
+    $failed_transaction = $account_management->getTotalTransactionFailedCount();
+    $in_progress_today = $account_management->getTotalInProgressTransactionTodayCount();
+    $in_progress_before_today = $account_management->getTotalInProgressTransactionBeforeTodayCount();
+
+    $response = array(
+        'total' => $total_transaction,
+        'details' => array( 'success' => $success_transaction,
+                            'failed' => $failed_transaction,
+                            'in_progress_today' => $in_progress_today,
+                            'in_progress_before_today' => $in_progress_before_today,)
+                            
+    );
+    return json_encode($response);
+}
+
 function set_amount($atts, $content = null) {
     $content = wp_kses_post($content);
-
-    // wp_enqueue_script('ama_transaction_amount', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
 
     return '<span id="transaction_amount">' . $content . '</span>';
 }
 
 function set_product_code($atts, $content = null) {
     $content = wp_kses_post($content);
-
-    // wp_enqueue_script('ama_product_code', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
 
     return '<span id="product_code">' . $content . '</span>';
 }
@@ -135,24 +158,84 @@ function set_form($atts, $content = null) {
     $content = wp_kses_post($content);
     $payment_confirmation = file_get_contents(plugin_dir_url( __FILE__ ) . 'ama_content/payment_confirmation.html');
 
-    wp_enqueue_script('ama_form', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
-    wp_enqueue_script('ama_qrcode', plugin_dir_url(__FILE__) . 'ama_content/qrcode.js', array('jquery'), '1.0', true);
-    wp_enqueue_script('ama_jsPDF', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', array('jquery'), '1.0', true);
-    wp_enqueue_script('ama_html2canva', 'https://cdn.jsdelivr.net/npm/html2canvas/dist/html2canvas.min.js', array('jquery'), '1.0', true);
-    wp_enqueue_style( 'ama_style', plugin_dir_url( __FILE__ ) . 'ama_content/style.css' );
-
+    
     return $payment_confirmation;
 }
 
 function ama_add_admin_page() {
     add_menu_page(
         'AMA Plugin Settings',    // Page title
-        'AMA Collection',         // Menu title
+        'AMA Settings',         // Menu title
         'manage_options',         // Capability required to access the menu
         'ama_admin_page',         // Menu slug (unique identifier)
         'ama_render_settings_page',    // Callback function to render the page
         'dashicons-money-alt'     // Icon for the menu item
     );
+
+    add_submenu_page(
+        'ama_admin_page',
+        'Dashboard',
+        'Dashboard',
+        'manage_options',
+        'ama_dashboard_page',
+        'ama_render_dashboard_page'
+    );
+
+    add_submenu_page(
+        'ama_admin_page',
+        'List of Success Transactions',
+        'Success Transactions',
+        'manage_options',
+        'ama_success_transactions_page',
+        'ama_render_success_transactions_page'
+    );
+
+    add_submenu_page(
+        'ama_admin_page',
+        'List of Failed Transactions',
+        'Failed Transactions',
+        'manage_options',
+        'ama_failed_transactions_page',
+        'ama_render_failed_transactions_page'
+    );
+
+    add_submenu_page(
+        'ama_admin_page',
+        'List of Ambiguous Transactions | Last 24H',
+        'Ambiguous Transactions - last 24H',
+        'manage_options',
+        'ama_ambiguous_transactions_page',
+        'ama_render_ambiguous_transactions_page'
+    );
+
+    add_submenu_page(
+        'ama_admin_page',
+        'List of Ambiguous Transactions',
+        'Ambiguous Transactions',
+        'manage_options',
+        'ama_all_ambiguous_transactions_page',
+        'ama_render_all_ambiguous_transactions_page'
+    );
+}
+
+function ama_render_dashboard_page() {
+    require_once plugin_dir_path(__FILE__). 'ama_content/dashboard-page-content.php';
+}
+
+function ama_render_success_transactions_page() {
+    require_once plugin_dir_path(__FILE__) . 'ama_content/success-transactions-page-content.php';
+}
+
+function ama_render_failed_transactions_page() {
+    require_once plugin_dir_path(__FILE__) . 'ama_content/failed-transactions-page-content.php';
+}
+
+function ama_render_ambiguous_transactions_page() {
+    require_once plugin_dir_path(__FILE__) . 'ama_content/ambiguous-transactions-page-content.php';
+}
+
+function ama_render_all_ambiguous_transactions_page() {
+    require_once plugin_dir_path(__FILE__) . 'ama_content/all-ambiguous-transactions-page-content.php';
 }
 
 function ama_render_settings_page() {
@@ -442,8 +525,8 @@ function create_ama_in_progress_transaction_today() {
             amount,
             reference,
             internal_id,
-            am_id,
-            status,
+            max(am_id) as am_id,
+            max(status) as status,
             response_code,
             base_url,
             MIN(transaction_date) as transaction_date
@@ -457,8 +540,6 @@ function create_ama_in_progress_transaction_today() {
             amount,
             reference,
             internal_id,
-            am_id,
-            status,
             response_code,
             base_url
             ";
@@ -483,8 +564,8 @@ function create_ama_in_progress_transaction_before_today() {
             amount,
             reference,
             internal_id,
-            am_id,
-            status,
+            max(am_id) as am_id,
+            max(status) as status,
             response_code,
             base_url,
             MIN(transaction_date) as transaction_date
@@ -498,14 +579,14 @@ function create_ama_in_progress_transaction_before_today() {
             amount,
             reference,
             internal_id,
-            am_id,
-            status,
             response_code,
             base_url";
 
     // Execute the SQL query to create the view
     $wpdb->query( $query );
 }
+
+
 
 // Define the response code and message options
 function ama_register_options() {
@@ -527,6 +608,25 @@ function ama_register_options() {
         'DP00800001029' => 'Transaction has been expired.'
     ));
 
+    add_option('ama_response_codes_name', array(
+        'DP00800001000' => 'Ambiguous',
+        'DP00800001001' => 'Success',
+        'DP00800001002' => 'Incorrect Pin',
+        'DP00800001003' => 'Withdrawal amount limit exceeded',
+        'DP00800001004' => 'Invalid Amount',
+        'DP00800001005' => 'Transaction ID is invalid',
+        'DP00800001006' => 'In process',
+        'DP00800001007' => 'Not enough balance',
+        'DP00800001008' => 'Refused',
+        'DP00800001009' => 'Do not honor',
+        'DP00800001010' => 'Transaction not permitted to Payee',
+        'DP00800001024' => 'Transaction Timed Out',
+        'DP00800001025' => 'Transaction Not Found',
+        'DP00800001026' => 'Forbidden',
+        'DP00800001029' => 'Transaction Expired'
+    ));
+
+    register_setting('ama_options', 'ama_response_codes_name');
     register_setting('ama_options', 'ama_response_codes');
 }
 
@@ -541,25 +641,53 @@ function fetch_transaction_status($atts, $content = null){
     return $fetch_transaction_page;
 }
 
+function enqueue_admin_scripts() {
+    wp_enqueue_script( 'ama_admin_js', plugin_dir_url( __FILE__ ) . 'ama_content/admin.js', array( 'jquery' ), '1.0', true );
+    wp_enqueue_script( 'pie_chart_js', plugin_dir_url( __FILE__ ) . 'ama_content/pieChart.js', array( 'jquery' ), '1.0', true );
+    wp_enqueue_style( 'ama_admin_css', plugin_dir_url( __FILE__ ) . 'ama_content/admin.css', array(), '1.0' );
+    
+}
+
+function enqueue_ama_scripts(){
+    wp_enqueue_script('ama_form', plugin_dir_url(__FILE__) . 'ama_content/script.js', array('jquery'), '1.0', true);
+    wp_enqueue_script('ama_qrcode', plugin_dir_url(__FILE__) . 'ama_content/qrcode.js', array('jquery'), '1.0', true);
+    wp_enqueue_script('ama_jsPDF', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', array('jquery'), '1.0', true);
+    wp_enqueue_script('ama_html2canva', 'https://cdn.jsdelivr.net/npm/html2canvas/dist/html2canvas.min.js', array('jquery'), '1.0', true);
+    wp_enqueue_style( 'ama_style', plugin_dir_url( __FILE__ ) . 'ama_content/style.css' );
+
+}
+
+// function ama_localize_data() {
+//     wp_localize_script( 'ama_admin_js', 'ama_dashboard_data_1', array(
+//         'ajax_url' => admin_url( 'ama_content/dashboard-page-content.php' ),
+//         'data_nonce' => wp_create_nonce( 'ama-data-nonce' )
+//     ) );
+// }
+
+
 register_activation_hook( __FILE__, 'create_ama_failed_transaction_view' );
 register_activation_hook( __FILE__, 'create_ama_in_progress_transaction_before_today' );
 register_activation_hook( __FILE__, 'create_ama_in_progress_transaction_today' );
 register_activation_hook( __FILE__, 'create_ama_success_transaction_view' );
 register_activation_hook( __FILE__, 'create_ama_payment_table' );
 
-add_action('rest_api_init', 'register_ama_fetch_token');
+add_action( 'admin_enqueue_scripts', 'enqueue_admin_scripts' );
+// add_action( 'admin_enqueue_scripts', 'ama_localize_data');
 add_action( 'admin_menu', 'ama_add_admin_page' );
 add_action( 'admin_init', 'ama_register_settings' );
 add_action( 'admin_init', 'ama_register_options');
+add_action( 'wp_enqueue_scripts', 'enqueue_ama_scripts' );
 
+add_action('rest_api_init', 'register_ama_fetch_token');
 add_action('rest_api_init', 'register_ama_check_transaction_status');
 add_action('rest_api_init', 'register_ama_do_payment');
 add_action('rest_api_init', 'register_ama_fetch_kyc_info');
 add_action('rest_api_init', 'register_ama_currency_route' );
 add_action('rest_api_init', 'ama_fetch_transaction_list');
+add_action('rest_api_init', 'ama_fetch_transaction_summary');
+
 
 add_shortcode( 'ama_amount', 'set_amount' );
 add_shortcode( 'ama_product_code', 'set_product_code' );
 add_shortcode( 'ama_form', 'set_form' );
-
 add_shortcode('ama_fetch_transaction_status', 'fetch_transaction_status');
