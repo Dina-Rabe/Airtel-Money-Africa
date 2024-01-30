@@ -314,16 +314,15 @@ function closeInfoWindow() {
 
 function showLoadingOverlay(loadingElement) {
   loadingElement.style.display = 'block';
-  console.log("SHOW!");
 }
 
 function hideLoadingOverlay(loadingElement) {
   loadingElement.style.display = 'none';
-  console.log("HIDE!");
 }
 
+// End of Loading Section
+
 function fetchTransactionList(msisdn_param, internal_id_param) {
-  console.log(msisdn_param);
   var data = {
     msisdn: msisdn_param,
     internal_id: internal_id_param
@@ -447,7 +446,6 @@ function show_transaction_info(internal_id){
   var typeNumber = 25;
   var errorCorrectionLevel = 'H';
   var qr = qrcode(typeNumber, errorCorrectionLevel);
-  console.log(lang);
   qr.addData(internal_id);
   qr.make();
   document.getElementById('ama_qr_code_'+lang).innerHTML = qr.createImgTag();

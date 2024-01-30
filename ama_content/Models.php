@@ -765,6 +765,41 @@ class AMA_Account {
         // Return the JSON object list
         return $json;
     }
-        
+      
+    public function fetchTransactionBy($params) {
+      global $wpdb;    
+      $table_name = $wpdb->prefix . 'ama_payments';
+      $input = '';
+      if (isset($params['input']) && $params['input'] != '') {
+        $input = '%' . $params['input'] . '%';
+      }else{
+        return null;
+      }
+      error_log($params['input']);
+      $query = $wpdb->prepare("
+        SELECT 
+          msisdn,
+          amount,
+          reference,
+          internal_id,
+          am_id,
+          status,
+          response_code,
+          base_url,
+          transaction_date
+        FROM $table_name
+        WHERE
+          msisdn LIKE %s OR
+          reference LIKE %s OR
+          internal_id LIKE %s OR
+          am_id LIKE %s
+      ", $input, $input, $input, $input);
+    
+      $results = $wpdb->get_results($query, ARRAY_A);
+      // Convert the results to JSON format
+      $jsonList = json_encode($results);
+    
+      return $jsonList;
+    }
 }
 
