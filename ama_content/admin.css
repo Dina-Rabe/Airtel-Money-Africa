@@ -1,0 +1,136 @@
+/* Styles for the header section */
+.ama_header {
+    background-color: #f2f2f2;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .ama_header h1 {
+    margin: 10px;
+    padding: 10px;
+  }
+  
+  /* Styles for the graph section */
+  .ama_graph {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .ama_graph_content {
+    display: block;
+    text-align: center;
+    width: 400px;
+  }
+
+  .ama_label{
+    color: #e30a17;
+    font-size: larger;
+    font-weight: bolder;
+  }
+
+  .ama_balance{
+    color: #e30a17;
+    font-weight: bold;
+    
+  }
+
+  .ama_transactionTable {
+    border-collapse: collapse;
+    border: 1px solid black;
+    padding: 5px;
+  }
+  
+  .ama_transactionTable th{
+    background-color: aquamarine;
+  }
+
+  .ama_transactionTable tr:nth-child(even) {
+    background-color: aliceblue;
+  }
+  
+  .ama_transactionTable tr:nth-child(odd) {
+    background-color: whitesmoke;
+  }
+
+  .ama_transactionTable th, .ama_transactionTable td {
+    border: 1px solid black;
+    padding: 5px;
+  }
+
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    background-color: #cccccc;
+    padding: 20px;
+    border-radius: 5px;
+    
+  }
+  
+  .loading-text {
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #e30a17;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .loading-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #e30a17; /* Updated animation color */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+
+.ama_input {
+  color: #e30a17;
+  border-color: #e30a17;
+  border-style: solid;
+  border-radius: 5px;
+  padding: 10px 10px;
+  width: 50%;
+  padding: 10px;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
+
+.ama_button {
+  background-color: #e30a17;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.ama_button:hover {
+  background-color: #ffffff;
+  color: #e30a17;
+  }
+
+
+.ama-grid-item {
+  background-color: white;
+  padding: 20px;
+  margin: 10px;
+  border: 1px solid #e30a17;
+  border-radius: 10px;
+}

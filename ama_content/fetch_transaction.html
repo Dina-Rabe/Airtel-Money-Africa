@@ -1,0 +1,125 @@
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-text">Loading...</div>
+    <div class="loading-spinner"></div>
+</div>
+
+<form class="ama_form">
+    <label for="phoneNumber" class="ama_label">Phone Number (without country code):</label>
+    <input type="tel" id="ama_msisdn" name="phoneNumber" placeholder="Enter Phone Number" class="ama_input">
+    
+    <label for="transactionID" class="ama_label">Internal Transaction ID:</label>
+    <input type="text" id="ama_internal_id" class="ama_input" name="transactionID" placeholder="Enter Internal Transaction ID">
+    <div class="ama_div_button">
+        <button type="button" onclick="transaction_list()" class="ama_button">Find</button>
+    </div>
+</form>
+<DIV id="ama_list_transaction">
+    
+</DIV>
+
+<div id="paymentWindow" class="payment-window" style="display: none;">
+    <div class="payment-content" id="payment-content-fr" style="display: none;">
+        <div id="pdf-content-fr">
+            <H2>Statut de votre payement!</H2>
+            <H3><span id="ama_last_name_fr"></span></H3>
+            <div id="ama_qr_code_fr"></div>
+            <div class="container">
+                <table>
+                    <tr>
+                        <td>MSISDN</td>
+                        <td id="ama_msisdn_fr"></td>
+                    </tr>
+                    <tr>
+                        <td>Amount</td>
+                        <td id="ama_amount_fr"></td>
+                    </tr>
+                    <tr>
+                        <td>Reference</td>
+                        <td id="ama_reference_fr"></td>
+                    </tr>
+                    <tr>
+                        <td>Internal ID</td>
+                        <td class="internal_id" id="ama_internal_id_fr"></td>
+                    </tr>
+                    <tr>
+                        <td>AM ID</td>
+                        <td class="ama_id" id="ama_id_fr"></td>
+                    </tr>
+                    <tr>
+                        <td>Message</td>
+                        <td id="ama_message_fr"></td>
+                    </tr>
+                    <tr>
+                        <td>Status</td>
+                        <td id="ama_status_fr"></td>
+                    </tr>
+                    <tr>
+                        <td>Response Code</td>
+                        <td id="ama_response_code_fr"></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Base URL</td>
+                        <td id="ama_base_url_fr"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <button class="ama_button" id="downloadPDF" onclick="downloadPaymentInfo('pdf-content-fr', 'ama_internal_id_fr')">Telecharger en PDF</button>
+        <button class="ama_button" id="closeButton" onclick="closePaymentWindow()">Fermer cette fenêtre</button>
+    </div>
+
+    <div class="payment-content" id="payment-content-en" style="display: none;">
+        <div id="pdf-content-en">
+            <H2>Payment status!</H2>
+            <H3><span id="ama_last_name_en"></span></H3>
+            <div id="ama_qr_code_en"></div>
+            <div class="container">
+                <table>
+                    <tr>
+                        <td>MSISDN</td>
+                        <td id="ama_msisdn_en"></td>
+                    </tr>
+                    <tr>
+                        <td>Amount</td>
+                        <td id="ama_amount_en"></td>
+                    </tr>
+                    <tr>
+                        <td>Reference</td>
+                        <td id="ama_reference_en"></td>
+                    </tr>
+                    <tr>
+                        <td>Internal ID</td>
+                        <td class="internal_id" id="ama_internal_id_en"></td>
+                    </tr>
+                    <tr>
+                        <td>AM ID</td>
+                        <td class="ama_id" id="ama_id_en"></td>
+                    </tr>
+                    <tr>
+                        <td>Message</td>
+                        <td id="ama_message_en"></td>
+                    </tr>
+                    <tr>
+                        <td>Status</td>
+                        <td id="ama_status_en"></td>
+                    </tr>
+                    <tr>
+                        <td>Response Code</td>
+                        <td id="ama_response_code_en"></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Base URL</td>
+                        <td id="ama_base_url_en"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <button class="ama_button" id="downloadPDF" onclick="downloadPaymentInfo('pdf-content-en', 'ama_internal_id_en')">Download PDF</button>
+        <button class="ama_button" id="closeButton" onclick="closePaymentWindow()">Close this window</button>
+        
+    </div>
+    
+    
+</div>
