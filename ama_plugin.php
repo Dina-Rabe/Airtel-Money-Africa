@@ -2,8 +2,8 @@
 /**
 * Plugin Name: AMA
 * Plugin URI: https://github.com/Dina-Rabe/Airtel-Money-Africa
-* Description: This is a WordPress plugin who implements all Airtel Africa API available on their Developer Portal
-* Version: 0.1
+* Description: This is a WordPress plugin who implements Collection Airtel Africa API available on their Developer Portal. This is based on ShortCode, and by integrating only 4 ShortCode you will be able to manage the whole journey for Airtel Money Online payment.
+* Version: 1.0
 * Author: Dina Rabenarimanitra
 * Author URI: https://www.linkedin.com/in/dina-rabenarimanitra-91aa0261/
 **/
@@ -487,7 +487,7 @@ function create_ama_in_progress_transaction_today() {
     global $wpdb;
 
     // Table name
-    $tableName = $wpdb->prefix . 'ama_payments'; // Replace 'allowin_ama_payments' with your actual table name
+    $tableName = $wpdb->prefix . 'ama_payments'; 
 
     // View name
     $viewName = $wpdb->prefix . 'ama_in_progress_transaction_today';
@@ -526,7 +526,7 @@ function create_ama_in_progress_transaction_before_today() {
     global $wpdb;
 
     // Table name
-    $tableName = $wpdb->prefix . 'ama_payments'; // Replace 'allowin_ama_payments' with your actual table name
+    $tableName = $wpdb->prefix . 'ama_payments';
 
     // View name
     $viewName = $wpdb->prefix . 'ama_in_progress_transaction_before_today';
