@@ -1,6 +1,6 @@
 # AMA Plugin
 
-AMA Plugin is a WordPress plugin that implements all Airtel Africa API available on their Developer Portal. It provides functionalities to handle currency, token retrieval, KYC information retrieval, payment processing, transaction status checking, and transaction listing. The plugin also includes various admin pages for managing settings, viewing transaction details, and generating reports.
+AMA Plugin is a WordPress plugin that implements Collection Airtel Africa API available on their Developer Portal. It provides functionalities to handle currency, token retrieval, KYC information retrieval, payment processing, transaction status checking, and transaction listing. The plugin also includes various admin pages for managing settings, viewing transaction details, and generating reports.
 
 ## Installation
 
