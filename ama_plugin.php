@@ -142,6 +142,19 @@ function ama_fetch_transaction_summary_callback($request) {
     return json_encode($response);
 }
 
+function ama_fetch_all_transaction(){
+    register_rest_route('ama/v1', '/success_transaction', array(
+        'methods'  => 'GET',
+        'callback' => 'ama_fetch_all_transaction_callback',
+    ));
+}
+
+function ama_fetch_all_transaction_callback(){
+    $account_management = new AMA_Account();
+    $list_transaction_success = $account_management->fetchALLTransaction();
+    return $list_transaction_success;
+}
+
 function set_amount($atts, $content = null) {
     $content = wp_kses_post($content);
 
@@ -643,8 +656,11 @@ function fetch_transaction_status($atts, $content = null){
 
 function enqueue_admin_scripts() {
     wp_enqueue_script( 'ama_admin_js', plugin_dir_url( __FILE__ ) . 'ama_content/admin.js', array( 'jquery' ), '1.0', true );
+    wp_enqueue_script( 'ama_admin_jquery_js', 'https://code.jquery.com/jquery-3.6.0.min.js', array( 'jquery' ), '1.0', true );
+    wp_enqueue_script( 'ama_admin_data_table_js', plugin_dir_url( __FILE__ ) . 'ama_content/data_tables.js', array( 'jquery' ), '1.0', true );
     wp_enqueue_script( 'pie_chart_js', plugin_dir_url( __FILE__ ) . 'ama_content/pieChart.js', array( 'jquery' ), '1.0', true );
     wp_enqueue_style( 'ama_admin_css', plugin_dir_url( __FILE__ ) . 'ama_content/admin.css', array(), '1.0' );
+    wp_enqueue_style( 'ama_data_table_css', 'https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css', array(), '1.0' );
     
 }
 
@@ -656,14 +672,6 @@ function enqueue_ama_scripts(){
     wp_enqueue_style( 'ama_style', plugin_dir_url( __FILE__ ) . 'ama_content/style.css' );
 
 }
-
-// function ama_localize_data() {
-//     wp_localize_script( 'ama_admin_js', 'ama_dashboard_data_1', array(
-//         'ajax_url' => admin_url( 'ama_content/dashboard-page-content.php' ),
-//         'data_nonce' => wp_create_nonce( 'ama-data-nonce' )
-//     ) );
-// }
-
 
 register_activation_hook( __FILE__, 'create_ama_failed_transaction_view' );
 register_activation_hook( __FILE__, 'create_ama_in_progress_transaction_before_today' );
@@ -685,6 +693,7 @@ add_action('rest_api_init', 'register_ama_fetch_kyc_info');
 add_action('rest_api_init', 'register_ama_currency_route' );
 add_action('rest_api_init', 'ama_fetch_transaction_list');
 add_action('rest_api_init', 'ama_fetch_transaction_summary');
+add_action('rest_api_init', 'ama_fetch_all_transaction');
 
 
 add_shortcode( 'ama_amount', 'set_amount' );

@@ -532,7 +532,6 @@ class AMA_Transactions{
 }
 
 class AMA_Account {
-    // private $baseURL = 'standard/v1/users/balance';
     
     public $account_status;
     public $currency;
@@ -576,7 +575,7 @@ class AMA_Account {
     
         // SQL query
         $table_name = $wpdb->prefix . 'ama_payments';
-        $sql = "SELECT COUNT(DISTINCT internal_id) AS total_transaction FROM $table_name";
+        $sql = "SELECT COUNT(DISTINCT internal_id) AS total_transaction FROM $table_name where response_code is not null";
     
         // Execute the query
         $result = $wpdb->get_results($sql);
@@ -637,7 +636,7 @@ class AMA_Account {
         return $totalTransactionFailedCount;
     }
     
-    function getTotalInProgressTransactionBeforeTodayCount() {
+    public function getTotalInProgressTransactionBeforeTodayCount() {
         global $wpdb;
     
         // SQL query
@@ -659,7 +658,7 @@ class AMA_Account {
         return $totalInProgressTransactionCount;
     }
 
-    function getTotalInProgressTransactionTodayCount() {
+    public function getTotalInProgressTransactionTodayCount() {
         global $wpdb;
     
         // SQL query
@@ -680,5 +679,92 @@ class AMA_Account {
         // Return the total in-progress transaction count for today
         return $totalInProgressTransactionCount;
     }
+
+    public function fetchALLTransaction() {
+        global $wpdb;
+    
+        // SQL query
+        $sql = "SELECT
+                    msisdn,
+                    amount,
+                    reference,
+                    internal_id,
+                    am_id,
+                    status,
+                    response_code,
+                    base_url,
+                    transaction_date
+                FROM {$wpdb->prefix}ama_success_transaction_view
+                UNION
+                SELECT
+                    msisdn,
+                    amount,
+                    reference,
+                    internal_id,
+                    am_id,
+                    status,
+                    response_code,
+                    base_url,
+                    transaction_date
+                FROM {$wpdb->prefix}ama_in_progress_transaction_today
+                UNION
+                SELECT
+                    msisdn,
+                    amount,
+                    reference,
+                    internal_id,
+                    am_id,
+                    status,
+                    response_code,
+                    base_url,
+                    transaction_date
+                FROM {$wpdb->prefix}ama_in_progress_transaction_before_today
+                UNION
+                SELECT
+                    msisdn,
+                    amount,
+                    reference,
+                    internal_id,
+                    am_id,
+                    status,
+                    response_code,
+                    base_url,
+                    transaction_date
+                FROM {$wpdb->prefix}ama_failed_transaction_view
+                ORDER BY transaction_date DESC
+                ";
+    
+        // Execute the query
+        $results = $wpdb->get_results($sql, ARRAY_A);
+    
+        // Create an array to store the data
+        $transactionData = array();
+    
+        // Fetch rows from the result set
+        foreach ($results as $row) {
+            // Build an individual transaction object
+            $transaction = array(
+                'msisdn' => $row['msisdn'],
+                'amount' => $row['amount'],
+                'reference' => $row['reference'],
+                'internal_id' => $row['internal_id'],
+                'am_id' => $row['am_id'],
+                'status' => $row['status'],
+                'response_code' => $row['response_code'],
+                'base_url' => $row['base_url'],
+                'transaction_date' => $row['transaction_date'],
+            );
+    
+            // Add the transaction to the data array
+            $transactionData[] = $transaction;
+        }
+    
+        // Convert the data array to JSON
+        $json = json_encode($transactionData);
+    
+        // Return the JSON object list
+        return $json;
+    }
+        
 }
 
